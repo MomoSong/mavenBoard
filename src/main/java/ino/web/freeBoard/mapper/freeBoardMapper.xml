@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ino.web.freeBoard.mapper.FreeBoardMapper">
+	
+	<select id="selectList" resultType="FreeBoardDto" parameterType="Pagination">
+				
+		SELECT * FROM (
+			SELECT ROWNUM RNUM, NUM, TITLE, CONTENT, NAME, REGDATE FROM (
+				SELECT NUM, TITLE, CONTENT, NAME, REGDATE FROM FREEBOARD 
+				WHERE NUM > 0  <include refid="search"></include> 
+				ORDER BY NUM DESC		
+			) 
+		) WHERE RNUM BETWEEN #{start} and #{end}
+		 
+		<!-- 
+		SELECT * FROM (
+			SELECT ROWNUM RNUM, NUM, TITLE, CONTENT, NAME, REGDATE FROM (
+				SELECT NUM, TITLE, CONTENT, NAME, REGDATE FROM FREEBOARD ORDER BY NUM DESC		
+			) 
+		)WHERE RNUM BETWEEN #{startRow} and #{endRow}
+		 -->
+		
+	</select>
+	
+	<select id="selectOne" resultType="FreeBoardDto">
+		SELECT NUM, TITLE, CONTENT, NAME, REGDATE FROM FREEBOARD 
+		WHERE NUM = #{num}
+	</select>
+	
+	<update id="modify" parameterType="FreeBoardDto">
+		UPDATE FREEBOARD SET TITLE=#{title}, CONTENT=#{content}, NAME=#{name} WHERE NUM=#{num}
+	</update>
+	
+	<insert id="insertPro" parameterType="FreeBoardDto">
+		INSERT INTO FREEBOARD(NUM, TITLE, CONTENT, NAME, REGDATE)
+		VALUES(FREEBOARDNUM_SEQ.NEXTVAL, #{title}, #{content}, #{name}, SYSDATE)
+	</insert>
+
+	<select id="maxNum" resultType="Integer">
+		SELECT MAX(NUM) FROM FREEBOARD
+	</select>
+		
+	<delete id="delete" >
+		DELETE FROM FREEBOARD WHERE NUM=#{num}
+	</delete>
+	
+	<select id="totalCount" resultType="Integer">
+		SELECT COUNT(NUM) FROM FREEBOARD
+	</select>
+	
+	<sql id="search">
+		<if test="search != null">
+				 <if test="searchType == 'tc'.toString()">
+				 	and ( title like '%' || #{search} || '%' 
+				 or content like '%' || #{search} || '%' )
+				 </if> 
+				 <if test="searchType == 't'.toString()">
+				 	and ( title like '%' || #{search} || '%' )
+				 </if> 
+				 <if test="searchType == 'c'.toString()">
+				 	and ( content like '%' || #{search} || '%' )
+				 </if> 
+		</if>
+	</sql>
+
+</mapper>
